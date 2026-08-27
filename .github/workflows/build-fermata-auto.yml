@@ -1,0 +1,91 @@
+name: Build Fermata Auto ARM64
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/build-fermata-auto.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build and publish verified APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      NO_GS: "true"
+
+    steps:
+      - name: Checkout release repository
+        uses: actions/checkout@v4
+
+      - name: Checkout official Fermata source
+        shell: bash
+        run: |
+          git clone --recurse-submodules --depth 1 https://github.com/AndreyPavlenko/Fermata.git Fermata
+          cd Fermata
+          echo "UPSTREAM_SHA=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
+          echo "UPSTREAM_SHORT_SHA=$(git rev-parse --short=10 HEAD)" >> "$GITHUB_ENV"
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build Fermata Auto for ARM64
+        shell: bash
+        run: |
+          cd Fermata
+          chmod +x gradlew
+          ./gradlew fermata:packageAutoReleaseUniversalApk \
+            -PABI=arm64-v8a \
+            -PAPP_ID_SFX=.luisftsilva \
+            "-PAPP_NAME=Fermata Auto (Luis)" \
+            --build-cache
+          mkdir -p ../dist
+          apk_path="$(find fermata/build/outputs/apk_from_bundle/autoRelease -type f -name '*.apk' -print -quit)"
+          test -n "$apk_path"
+          cp "$apk_path" ../dist/Fermata-Auto-arm64.apk
+
+      - name: Verify APK and checksum
+        shell: bash
+        run: |
+          build_tools="$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)"
+          "$build_tools/apksigner" verify --verbose --print-certs dist/Fermata-Auto-arm64.apk
+          sha256sum dist/Fermata-Auto-arm64.apk | tee dist/SHA256SUMS.txt
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Fermata-Auto-arm64
+          path: |
+            dist/Fermata-Auto-arm64.apk
+            dist/SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Publish GitHub release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag="fermata-auto-${UPSTREAM_SHORT_SHA}"
+          source_url="https://github.com/AndreyPavlenko/Fermata/commit/${UPSTREAM_SHA}"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            gh release upload "$tag" dist/Fermata-Auto-arm64.apk dist/SHA256SUMS.txt --clobber
+          else
+            gh release create "$tag" \
+              dist/Fermata-Auto-arm64.apk \
+              dist/SHA256SUMS.txt \
+              --title "Fermata Auto ARM64 (${UPSTREAM_SHORT_SHA})" \
+              --notes "APK ARM64 compilado automaticamente a partir do repositório oficial do Fermata. Código-fonte exato: ${source_url}. Projeto upstream licenciado sob GPL-3.0. Não é uma versão oficial publicada pelo autor e não contorna restrições do Android Auto."
+          fi
