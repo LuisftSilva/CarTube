@@ -32,7 +32,7 @@ public final class LogStore {
     public static synchronized void init(Context context) {
         if (appContext != null) return;
         appContext = context.getApplicationContext();
-        logFile = new File(appContext.getFilesDir(), "CarTubeSafe-diagnostics.log");
+        logFile = new File(appContext.getFilesDir(), "CarTube-diagnostics.log");
         previousHandler = Thread.getDefaultUncaughtExceptionHandler();
         Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
             e("CRASH", "Uncaught exception in " + thread.getName(), throwable);
@@ -74,10 +74,10 @@ public final class LogStore {
 
     private static void rotateIfNeeded() {
         if (logFile.exists() && logFile.length() > MAX_LOG_BYTES) {
-            File old = new File(logFile.getParentFile(), "CarTubeSafe-diagnostics.previous.log");
+            File old = new File(logFile.getParentFile(), "CarTube-diagnostics.previous.log");
             if (old.exists()) old.delete();
             logFile.renameTo(old);
-            logFile = new File(appContext.getFilesDir(), "CarTubeSafe-diagnostics.log");
+            logFile = new File(appContext.getFilesDir(), "CarTube-diagnostics.log");
         }
     }
 
@@ -85,7 +85,7 @@ public final class LogStore {
         Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
         intent.setType("text/plain");
-        intent.putExtra(Intent.EXTRA_TITLE, "CarTubeSafe-diagnostics.log");
+        intent.putExtra(Intent.EXTRA_TITLE, "CarTube-diagnostics.log");
         intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION
                 | Intent.FLAG_GRANT_WRITE_URI_PERMISSION
                 | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
