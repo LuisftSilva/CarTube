@@ -10,8 +10,8 @@ android {
         applicationId 'com.pi.cartubesafe'
         minSdk 28
         targetSdk 35
-        versionCode 7
-        versionName '3.4.0-surface'
+        versionCode 8
+        versionName '3.5.0-surface-media-fallback'
     }
 
     buildTypes {
