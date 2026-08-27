@@ -1,0 +1,61 @@
+name: Publish CarTube APK
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/publish-cartube-apk.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: android-actions/setup-android@v3
+
+      - name: Install Android platform
+        run: |
+          yes | sdkmanager --licenses >/dev/null || true
+          sdkmanager "platforms;android-35" "build-tools;35.0.0"
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.9"
+
+      - name: Build and verify APK
+        shell: bash
+        run: |
+          gradle --no-daemon assembleDebug
+          cp app/build/outputs/apk/debug/app-debug.apk CarTube-v3.4.0.apk
+          apksigner verify --verbose --print-certs CarTube-v3.4.0.apk
+          sha256sum CarTube-v3.4.0.apk | tee CarTube-v3.4.0.apk.sha256
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: CarTube-v3.4.0
+          path: |
+            CarTube-v3.4.0.apk
+            CarTube-v3.4.0.apk.sha256
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          gh release create v3.4.0 \
+            CarTube-v3.4.0.apk \
+            CarTube-v3.4.0.apk.sha256 \
+            --title "CarTube 3.4.0" \
+            --notes "Restaura a atividade estacionária CAR_LAUNCHER para vídeo quando o Android Auto a mantém visível. Mantém o serviço media para condução e oculta o vídeo de forma fail-safe quando a atividade perde foco ou passa para segundo plano. Versão de desenvolvimento para instalação manual; utilizar vídeo apenas com o veículo estacionado."
