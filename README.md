@@ -20,15 +20,17 @@ Do not use or modify this software in a way that distracts a driver or conflicts
 - AndroidX Media: `1.8.0`
 - Current app label: **CarTube Safe**
 
-The installable development APK is stored in [`apk/`](apk/).
+**[Download the current debug APK](apk/CarTube-Debug-v3.2-safe.apk)**
 
 ### APK checksum
 
 `CarTube-Debug-v3.2-safe.apk`
 
 ```text
-SHA-256: 991f3537325d8bb7a7ad1a2bb6753da7c1dea9ef41f1be57c7d29af56a8d9bba
+SHA-256: 9fcdc5daf12fe3f08b7820ca40fcedf4d05fa76249e398f8040d3b1bf90bdc49
 ```
+
+The checksum file is stored beside the APK at `apk/CarTube-Debug-v3.2-safe.apk.sha256`.
 
 ## Features currently implemented
 
