@@ -2,7 +2,12 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-feature android:name="android.hardware.type.automotive" android:required="false" />
+    <uses-permission android:name="androidx.car.app.ACCESS_SURFACE" />
+    <uses-permission android:name="androidx.car.app.NAVIGATION_TEMPLATES" />
+
+    <uses-feature
+        android:name="android.hardware.type.automotive"
+        android:required="false" />
 
     <application
         android:name=".App"
@@ -25,6 +30,8 @@
             </intent-filter>
         </activity>
 
+        <!-- Media fallback: this is the entry point Android Auto can discover for
+             sideloaded development builds when Unknown Sources is enabled. -->
         <service
             android:name=".CarMediaService"
             android:exported="true">
@@ -32,6 +39,22 @@
                 <action android:name="android.media.browse.MediaBrowserService" />
             </intent-filter>
         </service>
+
+        <!-- Car App Library surface POC. On a real vehicle this path requires the app
+             to be installed from a trusted source (for example Play internal sharing/test). -->
+        <service
+            android:name=".CarTubeCarAppService"
+            android:exported="true"
+            android:label="CarTube">
+            <intent-filter>
+                <action android:name="androidx.car.app.CarAppService" />
+                <category android:name="androidx.car.app.category.NAVIGATION" />
+            </intent-filter>
+        </service>
+
+        <meta-data
+            android:name="androidx.car.app.minCarApiLevel"
+            android:value="2" />
 
         <meta-data
             android:name="com.google.android.gms.car.application"

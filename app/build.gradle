@@ -10,8 +10,8 @@ android {
         applicationId 'com.pi.cartubesafe'
         minSdk 28
         targetSdk 35
-        versionCode 6
-        versionName '3.3.0'
+        versionCode 8
+        versionName '3.5.0-surface-media-fallback'
     }
 
     buildTypes {
@@ -32,4 +32,6 @@ android {
 
 dependencies {
     implementation "androidx.media:media:1.8.0"
+    implementation "androidx.car.app:app:1.7.0"
+    implementation "androidx.car.app:app-projected:1.7.0"
 }
