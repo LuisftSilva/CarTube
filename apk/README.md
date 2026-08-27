@@ -1,7 +1,7 @@
-# APK builds
+# CarTube APK
 
-This directory contains installable **development/debug** APKs built from the public source.
+The current installable development build is published as **`CarTube.apk`**.
 
-These are not production-signed releases and must not be treated as authenticated update packages. Verify the SHA-256 value documented in the root README before installing a checked-in artifact.
+Its SHA-256 checksum is stored in `CarTube.apk.sha256`.
 
-Current expected artifact: `CarTube-Debug-v3.2-safe.apk`.
+The APK is built automatically from the source in this repository by GitHub Actions. No signing key or private credential is committed to the public repository.
