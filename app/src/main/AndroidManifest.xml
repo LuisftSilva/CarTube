@@ -7,7 +7,7 @@
     <application
         android:name=".App"
         android:allowBackup="true"
-        android:appCategory="audio"
+        android:appCategory="game"
         android:hardwareAccelerated="true"
         android:icon="@drawable/ic_launcher"
         android:label="CarTube"
@@ -17,11 +17,15 @@
 
         <activity
             android:name=".MainActivity"
+            android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|screenSize|smallestScreenSize|uiMode"
             android:exported="true"
-            android:resizeableActivity="true">
+            android:launchMode="singleTask"
+            android:resizeableActivity="true"
+            android:screenOrientation="sensorLandscape">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
+                <category android:name="android.intent.category.CAR_LAUNCHER" />
             </intent-filter>
         </activity>
 
