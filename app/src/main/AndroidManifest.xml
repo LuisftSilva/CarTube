@@ -12,6 +12,7 @@
     <application
         android:name=".App"
         android:allowBackup="true"
+        android:appCategory="audio"
         android:hardwareAccelerated="true"
         android:icon="@drawable/ic_launcher"
         android:label="CarTube"
@@ -29,6 +30,18 @@
             </intent-filter>
         </activity>
 
+        <!-- Media fallback: this is the entry point Android Auto can discover for
+             sideloaded development builds when Unknown Sources is enabled. -->
+        <service
+            android:name=".CarMediaService"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.media.browse.MediaBrowserService" />
+            </intent-filter>
+        </service>
+
+        <!-- Car App Library surface POC. On a real vehicle this path requires the app
+             to be installed from a trusted source (for example Play internal sharing/test). -->
         <service
             android:name=".CarTubeCarAppService"
             android:exported="true"
