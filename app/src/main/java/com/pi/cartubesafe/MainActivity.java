@@ -1,0 +1,234 @@
+package com.pi.cartubesafe;
+
+import android.app.Activity;
+import android.app.UiModeManager;
+import android.content.Context;
+import android.content.Intent;
+import android.content.res.Configuration;
+import android.graphics.Color;
+import android.net.Uri;
+import android.os.Bundle;
+import android.view.Gravity;
+import android.view.ViewGroup;
+import android.webkit.CookieManager;
+import android.webkit.WebChromeClient;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
+import android.widget.Button;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.Toast;
+
+public final class MainActivity extends Activity {
+    private static final String HOME_URL = "https://m.youtube.com/";
+
+    private WebView webView;
+    private TextView status;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        LogStore.i("MainActivity", "onCreate; carMode=" + isCarMode());
+        buildUi();
+        configureWebView();
+        if (savedInstanceState == null) {
+            webView.loadUrl(HOME_URL);
+        } else {
+            webView.restoreState(savedInstanceState);
+        }
+        updateStatus();
+    }
+
+    private void buildUi() {
+        LinearLayout root = new LinearLayout(this);
+        root.setOrientation(LinearLayout.VERTICAL);
+        root.setBackgroundColor(Color.BLACK);
+        root.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+
+        LinearLayout bar = new LinearLayout(this);
+        bar.setOrientation(LinearLayout.HORIZONTAL);
+        bar.setGravity(Gravity.CENTER_VERTICAL);
+        bar.setPadding(dp(4), dp(4), dp(4), dp(4));
+        bar.setBackgroundColor(Color.rgb(32, 33, 36));
+
+        Button back = button("‹");
+        back.setOnClickListener(v -> {
+            if (webView.canGoBack()) webView.goBack();
+        });
+
+        Button home = button("YouTube");
+        home.setOnClickListener(v -> webView.loadUrl(HOME_URL));
+
+        Button brave = button("Brave");
+        brave.setOnClickListener(v -> openInBrave());
+
+        Button driveLog = button("Log Drive");
+        driveLog.setOnClickListener(v -> LogStore.requestDriveLink(this));
+
+        bar.addView(back);
+        bar.addView(home);
+        bar.addView(brave);
+        bar.addView(driveLog);
+
+        status = new TextView(this);
+        status.setTextColor(Color.WHITE);
+        status.setBackgroundColor(Color.rgb(55, 56, 60));
+        status.setPadding(dp(10), dp(5), dp(10), dp(5));
+        status.setTextSize(12f);
+
+        webView = new WebView(this);
+        webView.setBackgroundColor(Color.BLACK);
+        webView.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
+
+        root.addView(bar, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        root.addView(status, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        root.addView(webView);
+        setContentView(root);
+    }
+
+    private Button button(String text) {
+        Button b = new Button(this);
+        b.setText(text);
+        b.setAllCaps(false);
+        b.setMinWidth(0);
+        b.setMinHeight(0);
+        b.setPadding(dp(10), dp(6), dp(10), dp(6));
+        b.setTextSize(12f);
+        return b;
+    }
+
+    private void configureWebView() {
+        WebSettings settings = webView.getSettings();
+        settings.setJavaScriptEnabled(true);
+        settings.setDomStorageEnabled(true);
+        settings.setDatabaseEnabled(true);
+        settings.setMediaPlaybackRequiresUserGesture(true);
+        settings.setSupportZoom(true);
+        settings.setBuiltInZoomControls(false);
+        settings.setLoadWithOverviewMode(true);
+        settings.setUseWideViewPort(true);
+        settings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
+
+        CookieManager cookies = CookieManager.getInstance();
+        cookies.setAcceptCookie(true);
+        cookies.setAcceptThirdPartyCookies(webView, true);
+
+        webView.setWebChromeClient(new WebChromeClient());
+        webView.setWebViewClient(new WebViewClient() {
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                return false;
+            }
+        });
+    }
+
+    private void openInBrave() {
+        Uri uri = Uri.parse(webView.getUrl() == null ? HOME_URL : webView.getUrl());
+        Intent brave = new Intent(Intent.ACTION_VIEW, uri);
+        brave.setPackage("com.brave.browser");
+        try {
+            startActivity(brave);
+        } catch (Exception notInstalled) {
+            Intent generic = new Intent(Intent.ACTION_VIEW, uri);
+            try {
+                startActivity(generic);
+            } catch (Exception error) {
+                Toast.makeText(this, "Não existe navegador disponível.", Toast.LENGTH_SHORT).show();
+                LogStore.e("MainActivity", "Could not open browser", error);
+            }
+        }
+    }
+
+    private boolean isCarMode() {
+        UiModeManager ui = (UiModeManager) getSystemService(Context.UI_MODE_SERVICE);
+        if (ui != null && ui.getCurrentModeType() == Configuration.UI_MODE_TYPE_CAR) return true;
+        int type = getResources().getConfiguration().uiMode & Configuration.UI_MODE_TYPE_MASK;
+        return type == Configuration.UI_MODE_TYPE_CAR;
+    }
+
+    private void updateStatus() {
+        String mode = isCarMode() ? "Modo carro" : "Modo telemóvel";
+        String drive = LogStore.hasDriveLink() ? "log Drive ligado" : "log Drive por ligar";
+        status.setText(mode + " • " + drive + " • vídeo é pausado quando a atividade perde o primeiro plano");
+    }
+
+    private void pauseVideo() {
+        if (webView == null) return;
+        try {
+            webView.evaluateJavascript("(function(){document.querySelectorAll('video').forEach(function(v){v.pause();});})()", null);
+        } catch (Exception ignored) {
+        }
+        webView.onPause();
+        webView.pauseTimers();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (webView != null) {
+            webView.resumeTimers();
+            webView.onResume();
+        }
+        updateStatus();
+        LogStore.i("MainActivity", "onResume");
+        LogStore.syncDriveBestEffort();
+    }
+
+    @Override
+    protected void onPause() {
+        LogStore.i("MainActivity", "onPause -> pause video");
+        pauseVideo();
+        LogStore.syncDriveBestEffort();
+        super.onPause();
+    }
+
+    @Override
+    protected void onStop() {
+        LogStore.i("MainActivity", "onStop");
+        LogStore.syncDriveBestEffort();
+        super.onStop();
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        if (webView != null) webView.saveState(outState);
+        super.onSaveInstanceState(outState);
+    }
+
+    @Override
+    protected void onDestroy() {
+        LogStore.i("MainActivity", "onDestroy");
+        if (webView != null) {
+            pauseVideo();
+            webView.loadUrl("about:blank");
+            webView.stopLoading();
+            webView.destroy();
+            webView = null;
+        }
+        LogStore.syncDriveBestEffort();
+        super.onDestroy();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (LogStore.handleDriveLinkResult(this, requestCode, resultCode, data)) {
+            Toast.makeText(this, "Log ligado ao Drive.", Toast.LENGTH_SHORT).show();
+            updateStatus();
+        }
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (webView != null && webView.canGoBack()) {
+            webView.goBack();
+        } else {
+            super.onBackPressed();
+        }
+    }
+
+    private int dp(int value) {
+        return Math.round(value * getResources().getDisplayMetrics().density);
+    }
+}

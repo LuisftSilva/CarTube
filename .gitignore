@@ -1,0 +1,38 @@
+# Android / Gradle
+.gradle/
+build/
+**/build/
+local.properties
+captures/
+.externalNativeBuild/
+.cxx/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.DS_Store
+
+# Signing material — never commit private signing keys
+*.jks
+*.keystore
+keystore.properties
+signing.properties
+
+# Diagnostics / private runtime data
+*.log
+*.log.txt
+CarTubeSafe-diagnostics*
+
+# Secrets / local environment
+.env
+.env.*
+!.env.example
+*.pem
+*.p12
+*.key
+
+# Temporary files
+*.tmp
+*.swp
+*~
