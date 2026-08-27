@@ -2,6 +2,15 @@
 
 All notable development changes are documented here.
 
+## [3.3.0] - 2026-08-27
+
+### Changed
+- App display name standardized to **CarTube**.
+- Removed user-visible `Debug` suffixes from application package/version identity.
+- Public APK renamed to `CarTube.apk`.
+- Android Auto media metadata now presents the app as `CarTube`.
+- Diagnostic filename standardized to `CarTube-diagnostics.log`.
+
 ## [3.2-safe] - 2026-08-27
 
 ### Added
@@ -9,7 +18,7 @@ All notable development changes are documented here.
 - External Brave/browser hand-off.
 - Local diagnostics with opt-in Storage Access Framework export.
 - Android Auto media browser service using AndroidX Media.
-- GitHub Actions debug build.
+- GitHub Actions development build.
 
 ### Safety
 - Video is paused when the mobile activity loses the foreground.
