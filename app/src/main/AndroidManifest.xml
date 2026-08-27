@@ -2,12 +2,16 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-feature android:name="android.hardware.type.automotive" android:required="false" />
+    <uses-permission android:name="androidx.car.app.ACCESS_SURFACE" />
+    <uses-permission android:name="androidx.car.app.NAVIGATION_TEMPLATES" />
+
+    <uses-feature
+        android:name="android.hardware.type.automotive"
+        android:required="false" />
 
     <application
         android:name=".App"
         android:allowBackup="true"
-        android:appCategory="audio"
         android:hardwareAccelerated="true"
         android:icon="@drawable/ic_launcher"
         android:label="CarTube"
@@ -26,12 +30,18 @@
         </activity>
 
         <service
-            android:name=".CarMediaService"
-            android:exported="true">
+            android:name=".CarTubeCarAppService"
+            android:exported="true"
+            android:label="CarTube">
             <intent-filter>
-                <action android:name="android.media.browse.MediaBrowserService" />
+                <action android:name="androidx.car.app.CarAppService" />
+                <category android:name="androidx.car.app.category.NAVIGATION" />
             </intent-filter>
         </service>
+
+        <meta-data
+            android:name="androidx.car.app.minCarApiLevel"
+            android:value="2" />
 
         <meta-data
             android:name="com.google.android.gms.car.application"
