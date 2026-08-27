@@ -16,7 +16,7 @@ import java.util.Collections;
 import java.util.List;
 
 public final class CarMediaService extends MediaBrowserServiceCompat {
-    private static final String ROOT_ID = "cartube_safe_root";
+    private static final String ROOT_ID = "cartube_root";
     private static final String SAFE_ITEM_ID = "safe_driving_mode";
 
     private MediaSessionCompat session;
@@ -30,7 +30,7 @@ public final class CarMediaService extends MediaBrowserServiceCompat {
 
         artwork = BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher);
 
-        session = new MediaSessionCompat(this, "CarTubeSafeSession");
+        session = new MediaSessionCompat(this, "CarTubeSession");
         session.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS | MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
         session.setCallback(new MediaSessionCompat.Callback() {
             @Override
@@ -84,7 +84,7 @@ public final class CarMediaService extends MediaBrowserServiceCompat {
     private void showDrivingSafeState() {
         MediaMetadataCompat.Builder metadata = new MediaMetadataCompat.Builder()
                 .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, SAFE_ITEM_ID)
-                .putString(MediaMetadataCompat.METADATA_KEY_TITLE, "CarTube Safe")
+                .putString(MediaMetadataCompat.METADATA_KEY_TITLE, "CarTube")
                 .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, "Modo de condução")
                 .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_SUBTITLE, "Vídeo disponível quando estacionado");
         if (artwork != null) {
@@ -93,9 +93,6 @@ public final class CarMediaService extends MediaBrowserServiceCompat {
         }
         session.setMetadata(metadata.build());
 
-        // IMPORTANT: do not set PlaybackStateCompat#setErrorMessage here. Android Auto
-        // interprets a non-null playback error as a failed media session and may replace
-        // the browse UI with its generic "app isn't working" screen.
         setPlaybackState(PlaybackStateCompat.STATE_PAUSED);
         LogStore.i("CarMediaService", "Safe driving media state ready without playback error");
         LogStore.syncDriveBestEffort();
@@ -119,7 +116,7 @@ public final class CarMediaService extends MediaBrowserServiceCompat {
 
         MediaDescriptionCompat.Builder description = new MediaDescriptionCompat.Builder()
                 .setMediaId(SAFE_ITEM_ID)
-                .setTitle("CarTube Safe")
+                .setTitle("CarTube")
                 .setSubtitle("Modo de condução seguro")
                 .setDescription("O vídeo fica disponível quando o veículo estiver estacionado.");
         if (artwork != null) {
