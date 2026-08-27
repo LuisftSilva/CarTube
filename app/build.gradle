@@ -10,14 +10,13 @@ android {
         applicationId 'com.pi.cartubesafe'
         minSdk 28
         targetSdk 35
-        versionCode 5
-        versionName '3.2-safe'
+        versionCode 6
+        versionName '3.3.0'
     }
 
     buildTypes {
         debug {
-            applicationIdSuffix '.debug'
-            versionNameSuffix '-debug'
+            // Development build type. No user-visible .debug package/version suffix.
         }
         release {
             minifyEnabled false
