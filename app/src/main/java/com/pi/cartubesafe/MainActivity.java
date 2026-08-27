@@ -9,6 +9,7 @@ import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.Gravity;
+import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.CookieManager;
 import android.webkit.WebChromeClient;
@@ -25,6 +26,8 @@ public final class MainActivity extends Activity {
 
     private WebView webView;
     private TextView status;
+    private TextView audioOnlyOverlay;
+    private boolean videoAllowed;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,11 +82,24 @@ public final class MainActivity extends Activity {
 
         webView = new WebView(this);
         webView.setBackgroundColor(Color.BLACK);
+        webView.setVisibility(View.GONE);
         webView.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
 
-        root.addView(bar, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-        root.addView(status, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        if (!isCarMode()) {
+            root.addView(bar, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+            root.addView(status, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        }
         root.addView(webView);
+
+        audioOnlyOverlay = new TextView(this);
+        audioOnlyOverlay.setText("Modo de condução seguro\nApenas áudio");
+        audioOnlyOverlay.setTextColor(Color.WHITE);
+        audioOnlyOverlay.setTextSize(22f);
+        audioOnlyOverlay.setGravity(Gravity.CENTER);
+        audioOnlyOverlay.setBackgroundColor(Color.BLACK);
+        audioOnlyOverlay.setVisibility(View.VISIBLE);
+        root.addView(audioOnlyOverlay, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
         setContentView(root);
     }
 
@@ -163,6 +179,19 @@ public final class MainActivity extends Activity {
         webView.pauseTimers();
     }
 
+    private void setVideoAllowed(boolean allowed, String reason) {
+        if (videoAllowed == allowed) return;
+        videoAllowed = allowed;
+        LogStore.i("MainActivity", "videoAllowed=" + allowed + "; reason=" + reason);
+        applyVideoPolicy();
+    }
+
+    private void applyVideoPolicy() {
+        if (webView == null || audioOnlyOverlay == null) return;
+        webView.setVisibility(videoAllowed ? View.VISIBLE : View.GONE);
+        audioOnlyOverlay.setVisibility(videoAllowed ? View.GONE : View.VISIBLE);
+    }
+
     @Override
     protected void onResume() {
         super.onResume();
@@ -170,6 +199,7 @@ public final class MainActivity extends Activity {
             webView.resumeTimers();
             webView.onResume();
         }
+        setVideoAllowed(false, "resumed_waiting_for_window_focus");
         updateStatus();
         LogStore.i("MainActivity", "onResume");
         LogStore.syncDriveBestEffort();
@@ -177,8 +207,8 @@ public final class MainActivity extends Activity {
 
     @Override
     protected void onPause() {
-        LogStore.i("MainActivity", "onPause -> pause video");
-        pauseVideo();
+        LogStore.i("MainActivity", "onPause -> hide video; audio may continue");
+        setVideoAllowed(false, "activity_paused");
         LogStore.syncDriveBestEffort();
         super.onPause();
     }
@@ -186,8 +216,15 @@ public final class MainActivity extends Activity {
     @Override
     protected void onStop() {
         LogStore.i("MainActivity", "onStop");
+        setVideoAllowed(false, "activity_stopped");
         LogStore.syncDriveBestEffort();
         super.onStop();
+    }
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        setVideoAllowed(hasFocus, hasFocus ? "window_focused" : "window_focus_lost");
     }
 
     @Override
