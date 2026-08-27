@@ -10,7 +10,7 @@
         android:appCategory="audio"
         android:hardwareAccelerated="true"
         android:icon="@drawable/ic_launcher"
-        android:label="CarTube Safe"
+        android:label="CarTube"
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="false">
