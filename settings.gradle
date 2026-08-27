@@ -14,5 +14,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "CarTubeSafe"
+rootProject.name = "CarTube"
 include(":app")
