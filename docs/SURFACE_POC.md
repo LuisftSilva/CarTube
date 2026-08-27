@@ -75,7 +75,10 @@ The branch declares:
 - Android Auto `template` capability
 - minimum Car App API level 2
 
-The projected-car dependency is `androidx.car.app:app-projected:1.7.0`.
+Dependencies:
+
+- `androidx.car.app:app:1.7.0` for the core Car App Library API
+- `androidx.car.app:app-projected:1.7.0` for projected Android Auto integration
 
 ## Safety boundary
 
