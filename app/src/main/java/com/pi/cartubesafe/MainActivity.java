@@ -1,12 +1,8 @@
 package com.pi.cartubesafe;
 
 import android.app.Activity;
-import android.app.UiModeManager;
-import android.content.Context;
 import android.content.Intent;
-import android.content.res.Configuration;
 import android.graphics.Color;
-import android.net.Uri;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.view.View;
@@ -16,7 +12,6 @@ import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -25,14 +20,13 @@ public final class MainActivity extends Activity {
     private static final String HOME_URL = "https://m.youtube.com/";
 
     private WebView webView;
-    private TextView status;
     private TextView audioOnlyOverlay;
     private boolean videoAllowed;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        LogStore.i("MainActivity", "onCreate; carMode=" + isCarMode());
+        LogStore.i("MainActivity", "onCreate");
         buildUi();
         configureWebView();
         if (savedInstanceState == null) {
@@ -40,7 +34,6 @@ public final class MainActivity extends Activity {
         } else {
             webView.restoreState(savedInstanceState);
         }
-        updateStatus();
     }
 
     private void buildUi() {
@@ -49,46 +42,11 @@ public final class MainActivity extends Activity {
         root.setBackgroundColor(Color.BLACK);
         root.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
 
-        LinearLayout bar = new LinearLayout(this);
-        bar.setOrientation(LinearLayout.HORIZONTAL);
-        bar.setGravity(Gravity.CENTER_VERTICAL);
-        bar.setPadding(dp(4), dp(4), dp(4), dp(4));
-        bar.setBackgroundColor(Color.rgb(32, 33, 36));
-
-        Button back = button("‹");
-        back.setOnClickListener(v -> {
-            if (webView.canGoBack()) webView.goBack();
-        });
-
-        Button home = button("YouTube");
-        home.setOnClickListener(v -> webView.loadUrl(HOME_URL));
-
-        Button brave = button("Brave");
-        brave.setOnClickListener(v -> openInBrave());
-
-        Button driveLog = button("Log Drive");
-        driveLog.setOnClickListener(v -> LogStore.requestDriveLink(this));
-
-        bar.addView(back);
-        bar.addView(home);
-        bar.addView(brave);
-        bar.addView(driveLog);
-
-        status = new TextView(this);
-        status.setTextColor(Color.WHITE);
-        status.setBackgroundColor(Color.rgb(55, 56, 60));
-        status.setPadding(dp(10), dp(5), dp(10), dp(5));
-        status.setTextSize(12f);
-
         webView = new WebView(this);
         webView.setBackgroundColor(Color.BLACK);
         webView.setVisibility(View.GONE);
         webView.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
 
-        if (!isCarMode()) {
-            root.addView(bar, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-            root.addView(status, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-        }
         root.addView(webView);
 
         audioOnlyOverlay = new TextView(this);
@@ -101,17 +59,6 @@ public final class MainActivity extends Activity {
         root.addView(audioOnlyOverlay, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
         setContentView(root);
-    }
-
-    private Button button(String text) {
-        Button b = new Button(this);
-        b.setText(text);
-        b.setAllCaps(false);
-        b.setMinWidth(0);
-        b.setMinHeight(0);
-        b.setPadding(dp(10), dp(6), dp(10), dp(6));
-        b.setTextSize(12f);
-        return b;
     }
 
     private void configureWebView() {
@@ -137,36 +84,6 @@ public final class MainActivity extends Activity {
                 return false;
             }
         });
-    }
-
-    private void openInBrave() {
-        Uri uri = Uri.parse(webView.getUrl() == null ? HOME_URL : webView.getUrl());
-        Intent brave = new Intent(Intent.ACTION_VIEW, uri);
-        brave.setPackage("com.brave.browser");
-        try {
-            startActivity(brave);
-        } catch (Exception notInstalled) {
-            Intent generic = new Intent(Intent.ACTION_VIEW, uri);
-            try {
-                startActivity(generic);
-            } catch (Exception error) {
-                Toast.makeText(this, "Não existe navegador disponível.", Toast.LENGTH_SHORT).show();
-                LogStore.e("MainActivity", "Could not open browser", error);
-            }
-        }
-    }
-
-    private boolean isCarMode() {
-        UiModeManager ui = (UiModeManager) getSystemService(Context.UI_MODE_SERVICE);
-        if (ui != null && ui.getCurrentModeType() == Configuration.UI_MODE_TYPE_CAR) return true;
-        int type = getResources().getConfiguration().uiMode & Configuration.UI_MODE_TYPE_MASK;
-        return type == Configuration.UI_MODE_TYPE_CAR;
-    }
-
-    private void updateStatus() {
-        String mode = isCarMode() ? "Modo carro" : "Modo telemóvel";
-        String drive = LogStore.hasDriveLink() ? "log Drive ligado" : "log Drive por ligar";
-        status.setText(mode + " • " + drive + " • vídeo é pausado quando a atividade perde o primeiro plano");
     }
 
     private void pauseVideo() {
@@ -200,7 +117,6 @@ public final class MainActivity extends Activity {
             webView.onResume();
         }
         setVideoAllowed(false, "resumed_waiting_for_window_focus");
-        updateStatus();
         LogStore.i("MainActivity", "onResume");
         LogStore.syncDriveBestEffort();
     }
@@ -252,7 +168,6 @@ public final class MainActivity extends Activity {
         super.onActivityResult(requestCode, resultCode, data);
         if (LogStore.handleDriveLinkResult(this, requestCode, resultCode, data)) {
             Toast.makeText(this, "Log ligado ao Drive.", Toast.LENGTH_SHORT).show();
-            updateStatus();
         }
     }
 
