@@ -36,17 +36,17 @@ jobs:
         shell: bash
         run: |
           gradle --no-daemon assembleDebug
-          cp app/build/outputs/apk/debug/app-debug.apk CarTube-v3.4.0.apk
+          cp app/build/outputs/apk/debug/app-debug.apk CarTube-v3.5.0.apk
           build_tools="$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)"
-          "$build_tools/apksigner" verify --verbose --print-certs CarTube-v3.4.0.apk
-          sha256sum CarTube-v3.4.0.apk | tee CarTube-v3.4.0.apk.sha256
+          "$build_tools/apksigner" verify --verbose --print-certs CarTube-v3.5.0.apk
+          sha256sum CarTube-v3.5.0.apk | tee CarTube-v3.5.0.apk.sha256
 
       - uses: actions/upload-artifact@v4
         with:
-          name: CarTube-v3.4.0
+          name: CarTube-v3.5.0
           path: |
-            CarTube-v3.4.0.apk
-            CarTube-v3.4.0.apk.sha256
+            CarTube-v3.5.0.apk
+            CarTube-v3.5.0.apk.sha256
           if-no-files-found: error
           retention-days: 90
 
@@ -55,8 +55,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
-          gh release create v3.4.0 \
-            CarTube-v3.4.0.apk \
-            CarTube-v3.4.0.apk.sha256 \
-            --title "CarTube 3.4.0" \
-            --notes "Restaura a atividade estacionária CAR_LAUNCHER para vídeo quando o Android Auto a mantém visível. Mantém o serviço media para condução e oculta o vídeo de forma fail-safe quando a atividade perde foco ou passa para segundo plano. Versão de desenvolvimento para instalação manual; utilizar vídeo apenas com o veículo estacionado."
+          gh release create v3.5.0 \
+            CarTube-v3.5.0.apk \
+            CarTube-v3.5.0.apk.sha256 \
+            --title "CarTube 3.5.0" \
+            --notes "Remove a rota media que fazia o Android Auto abrir permanentemente o template 'Modo de condução seguro'. O CarTube volta a ser exclusivamente uma atividade estacionária CAR_LAUNCHER; o vídeo é ocultado de forma fail-safe quando a atividade perde foco ou passa para segundo plano. Versão de desenvolvimento para instalação manual; utilizar vídeo apenas com o veículo estacionado."
